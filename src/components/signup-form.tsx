@@ -15,12 +15,14 @@ import { toast } from "sonner";
 import { auth } from "@/lib/auth";
 import { publicEnv } from "@/env";
 
-export function LoginForm({
+export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -28,13 +30,26 @@ export function LoginForm({
     setLoading(true);
 
     try {
-      const result = await auth.login(email, password);
-
-      if (!result.success) {
-        throw new Error(result.message || "Erro ao autenticar");
+      if (password !== confirmPassword) {
+        throw new Error("As senhas não coincidem");
       }
 
-      toast.success("Login realizado com sucesso!");
+      if (password.length < 8) {
+        throw new Error("A senha deve ter pelo menos 8 caracteres");
+      }
+
+      const result = await auth.register(name, email, password);
+
+      if (!result.success) {
+        throw new Error(result.message || "Erro ao criar conta");
+      }
+
+      toast.success("Conta criada com sucesso!");
+
+      setName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Erro inesperado";
@@ -52,43 +67,62 @@ export function LoginForm({
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Faça login na sua conta</h1>
+          <h1 className="text-2xl font-bold">Crie sua conta</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Digite seu email abaixo para fazer login na sua conta
+            Preencha o formulário abaixo para criar sua conta
           </p>
         </div>
         <Field>
+          <FieldLabel htmlFor="name">Nome Completo</FieldLabel>
+          <Input
+            id="name"
+            type="text"
+            placeholder="João Silva"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </Field>
+        <Field>
           <FieldLabel htmlFor="email">E-mail</FieldLabel>
           <Input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             id="email"
             type="email"
             placeholder="exemplo@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
+          <FieldDescription>
+            Usaremos este e-mail para entrar em contato. Não compartilharemos
+            seu e-mail com terceiros.
+          </FieldDescription>
         </Field>
         <Field>
-          <div className="flex items-center">
-            <FieldLabel htmlFor="password">Senha</FieldLabel>
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Esqueceu sua senha?
-            </a>
-          </div>
+          <FieldLabel htmlFor="password">Senha</FieldLabel>
           <Input
             id="password"
             type="password"
-            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
+          <FieldDescription>Deve ter pelo menos 8 caracteres.</FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="confirm-password">Confirmar Senha</FieldLabel>
+          <Input
+            id="confirm-password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          <FieldDescription>Por favor, confirme sua senha.</FieldDescription>
         </Field>
         <Field>
           <Button type="submit" disabled={loading}>
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? "Criando conta..." : "Criar Conta"}
           </Button>
         </Field>
         <FieldSeparator>Ou continue com</FieldSeparator>
@@ -126,12 +160,12 @@ export function LoginForm({
                 fill="#EA4335"
               />
             </svg>
-            Entrar com Google
+            Cadastrar-se com Google
           </Button>
-          <FieldDescription className="text-center">
-            Não tem uma conta?{" "}
-            <a href="/signup" className="underline underline-offset-4">
-              Cadastre-se
+          <FieldDescription className="px-6 text-center">
+            Já tem uma conta?{" "}
+            <a href="/login" className="underline underline-offset-4">
+              Entrar
             </a>
           </FieldDescription>
         </Field>
