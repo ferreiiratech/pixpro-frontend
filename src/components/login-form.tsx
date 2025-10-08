@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,13 +10,45 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { toast } from "sonner";
+import { auth } from "@/lib/auth";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+
+    try {
+      const result = await auth.login(email, password);
+
+      if (!result.success) {
+        throw new Error(result.message || "Erro ao autenticar");
+      }
+
+      toast.success("Login realizado com sucesso!");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro inesperado";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
+    <form
+      onSubmit={handleSubmit}
+      className={cn("flex flex-col gap-6", className)}
+      {...props}
+    >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Faça login na sua conta</h1>
@@ -25,6 +59,8 @@ export function LoginForm({
         <Field>
           <FieldLabel htmlFor="email">E-mail</FieldLabel>
           <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             id="email"
             type="email"
             placeholder="exemplo@email.com"
@@ -41,10 +77,18 @@ export function LoginForm({
               Esqueceu sua senha?
             </a>
           </div>
-          <Input id="password" type="password" required />
+          <Input
+            id="password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </Field>
         <Field>
-          <Button type="submit">Entrar</Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
+          </Button>
         </Field>
         <FieldSeparator>Ou continue com</FieldSeparator>
         <Field>
