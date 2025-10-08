@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
 import { auth } from "@/lib/auth";
+import { publicEnv } from "@/env";
 
 export function LoginForm({
   className,
@@ -92,7 +93,17 @@ export function LoginForm({
         </Field>
         <FieldSeparator>Ou continue com</FieldSeparator>
         <Field>
-          <Button variant="outline" type="button">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => {
+              window.open(
+                `${publicEnv.NEXT_PUBLIC_API_URL}/auth/google`,
+                "googleAuth",
+                "width=500,height=600,scrollbars=yes,resizable=yes"
+              );
+            }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
