@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
+import { auth } from "@/lib/auth";
 import { publicEnv } from "@/env";
 
 export function SignupForm({
@@ -37,26 +38,10 @@ export function SignupForm({
         throw new Error("A senha deve ter pelo menos 8 caracteres");
       }
 
-      const response = await fetch(
-        `${publicEnv.NEXT_PUBLIC_API_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-          }),
-          credentials: "include",
-        }
-      );
+      const result = await auth.register(name, email, password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Erro ao criar conta");
+      if (!result.success) {
+        throw new Error(result.message || "Erro ao criar conta");
       }
 
       toast.success("Conta criada com sucesso!");
@@ -179,7 +164,7 @@ export function SignupForm({
           </Button>
           <FieldDescription className="px-6 text-center">
             Já tem uma conta?{" "}
-            <a href="#" className="underline underline-offset-4">
+            <a href="/login" className="underline underline-offset-4">
               Entrar
             </a>
           </FieldDescription>
