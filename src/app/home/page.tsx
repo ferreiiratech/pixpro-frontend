@@ -107,8 +107,8 @@ export default function Home() {
           </Card>
 
           <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-accent" />
+            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-primary" />
             </div>
             <h3 className="text-xl font-semibold">Modelos de IA</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -131,8 +131,8 @@ export default function Home() {
           </Card>
 
           <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center">
-              <Layers className="h-6 w-6 text-accent" />
+            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Layers className="h-6 w-6 text-primary" />
             </div>
             <h3 className="text-xl font-semibold">Gerenciamento de Projetos</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -153,8 +153,8 @@ export default function Home() {
           </Card>
 
           <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center">
-              <Shield className="h-6 w-6 text-accent" />
+            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Shield className="h-6 w-6 text-primary" />
             </div>
             <h3 className="text-xl font-semibold">Seguro e Rápido</h3>
             <p className="text-muted-foreground leading-relaxed">
