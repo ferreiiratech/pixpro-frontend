@@ -13,8 +13,48 @@ import {
 import Link from "next/link";
 import { SplineBackground } from "@/components/spline-background";
 import Header from "./header";
+import CardFeature from "./components/card-feature";
 
 export default function Home() {
+  const cardsFeatures = [
+    {
+      title: "Upload em Lote",
+      description:
+        "Arraste e solte centenas de imagens de uma vez. Organize por pastas, tags e categorias.",
+      icon: ImageIcon,
+    },
+    {
+      title: "Modelos de IA",
+      description:
+        "Escolha entre aprimoramento, detecção de objetos, efeitos artísticos e mais modelos avançados.",
+      icon: Sparkles,
+    },
+    {
+      title: "Atualizações em Tempo Real",
+      description:
+        "Acompanhe o status do processamento ao vivo com notificações WebSocket e indicadores de progresso.",
+      icon: Zap,
+    },
+    {
+      title: "Gerenciamento de Projetos",
+      description:
+        "Organize imagens em projetos. Agrupe por tipo de processamento, data ou critérios personalizados.",
+      icon: Layers,
+    },
+    {
+      title: "Compare Resultados",
+      description:
+        "Slider interativo antes/depois. Baixe, compartilhe ou salve resultados na sua biblioteca.",
+      icon: TrendingUp,
+    },
+    {
+      title: "Seguro e Rápido",
+      description:
+        "Segurança de nível empresarial com entrega via CDN. Suas imagens são criptografadas e protegidas.",
+      icon: Shield,
+    },
+  ];
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -95,73 +135,9 @@ export default function Home() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <ImageIcon className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold">Upload em Lote</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Arraste e solte centenas de imagens de uma vez. Organize por
-              pastas, tags e categorias.
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold">Modelos de IA</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Escolha entre aprimoramento, detecção de objetos, efeitos
-              artísticos e mais modelos avançados.
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Zap className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold">
-              Atualizações em Tempo Real
-            </h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Acompanhe o status do processamento ao vivo com notificações
-              WebSocket e indicadores de progresso.
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Layers className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold">Gerenciamento de Projetos</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Organize imagens em projetos. Agrupe por tipo de processamento,
-              data ou critérios personalizados.
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold">Compare Resultados</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Slider interativo antes/depois. Baixe, compartilhe ou salve
-              resultados na sua biblioteca.
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-4 bg-card/50 backdrop-blur border-border/50 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Shield className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold">Seguro e Rápido</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Segurança de nível empresarial com entrega via CDN. Suas imagens
-              são criptografadas e protegidas.
-            </p>
-          </Card>
+          {cardsFeatures.map((feature) => (
+            <CardFeature key={feature.title} {...feature} />
+          ))}
         </div>
       </section>
 
