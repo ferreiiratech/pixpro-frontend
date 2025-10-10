@@ -1,6 +1,6 @@
 import { SignupForm } from "@/app/signup/signup-form";
-import Image from "next/image";
 import { Logo } from "@/components/logo";
+import Spline from "@splinetool/react-spline";
 
 export default function SignupPage() {
   return (
@@ -14,14 +14,9 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
-      <div className="bg-muted relative hidden lg:block">
-        <Image
-          src="/placeholder.svg"
-          alt="Image"
-          fill
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-          priority
-        />
+      <div className="bg-background relative hidden lg:block">
+        <Spline scene="https://prod.spline.design/e6970ZvNNZneZwJn/scene.splinecode" />
+        <div className="absolute bottom-0 left-0 right-0 h-2/12 bg-gradient-to-t from-background/80 via-background/40 to-transparent backdrop-blur-sm" />
       </div>
     </div>
   );
