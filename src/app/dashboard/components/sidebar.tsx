@@ -44,16 +44,24 @@ export function Sidebar() {
 
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-card">
-      <div className="border-b p-6">
+      <div className="border-b p-6" data-tour-id="sidebar-logo">
         <Logo />
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="mb-4 flex items-center justify-between">
+        <div
+          className="mb-4 flex items-center justify-between"
+          data-tour-id="projects-header"
+        >
           <h2 className="text-sm font-semibold text-muted-foreground">
             Projetos
           </h2>
-          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0"
+            data-tour-id="new-project-button"
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -63,7 +71,7 @@ export function Sidebar() {
             Nenhum projeto ainda
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-1" data-tour-id="projects-list">
             {projects.map((project) => (
               <Link
                 key={project.id}
@@ -83,7 +91,7 @@ export function Sidebar() {
         )}
       </div>
 
-      <div className="border-t p-4">
+      <div className="border-t p-4" data-tour-id="user-menu">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-3 px-2">
