@@ -144,47 +144,64 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6 py-4">
-            
             <div className="space-y-2">
               <Label htmlFor="theme">
                 Tema do projeto <span className="text-destructive">*</span>
               </Label>
-              <Select value={formData.theme} onValueChange={handleThemeChange}>
-                <SelectTrigger
-                  id="theme"
-                  className={errors.theme ? "border-destructive" : ""}
-                >
-                  <SelectValue placeholder="Selecione um tema..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROJECT_THEMES.map((theme) => (
-                    <SelectItem key={theme.id} value={theme.id}>
-                      <div className="flex items-start gap-2">
-                        <span className="text-lg">{theme.icon}</span>
-                        <div>
-                          <div className="font-medium">{theme.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {theme.description}
-                          </div>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.theme && (
-                <p className="text-sm text-destructive">{errors.theme}</p>
-              )}
-              {selectedTheme && (
-                <div className="rounded-lg bg-muted p-3 text-sm">
-                  <div className="flex items-center gap-2 mb-1">
+              {selectedTheme ? (
+                <div className="flex items-center justify-between rounded-md border p-3">
+                  <div className="flex items-start gap-3">
                     <span className="text-lg">{selectedTheme.icon}</span>
-                    <span className="font-medium">{selectedTheme.name}</span>
+                    <div>
+                      <div className="font-medium">{selectedTheme.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {selectedTheme.description}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-muted-foreground text-xs">
-                    {selectedTheme.description}
-                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFormData((p) => ({ ...p, theme: "" }))}
+                    >
+                      Alterar
+                    </Button>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <Select
+                    value={formData.theme}
+                    onValueChange={handleThemeChange}
+                  >
+                    <SelectTrigger
+                      id="theme"
+                      className={errors.theme ? "border-destructive" : ""}
+                    >
+                      <SelectValue placeholder="Selecione um tema..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROJECT_THEMES.map((theme) => (
+                        <SelectItem key={theme.id} value={theme.id}>
+                          <div className="flex items-start gap-2">
+                            <span className="text-lg">{theme.icon}</span>
+                            <div>
+                              <div className="font-medium">{theme.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {theme.description}
+                              </div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.theme && (
+                    <p className="text-sm text-destructive">{errors.theme}</p>
+                  )}
+                </>
               )}
             </div>
 
