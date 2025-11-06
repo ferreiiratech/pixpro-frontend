@@ -97,6 +97,32 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const projectId = `proj_${Date.now()}`;
+      try {
+        const existing =
+          typeof window !== "undefined"
+            ? JSON.parse(localStorage.getItem("pixpro-projects") || "[]")
+            : [];
+
+        const newProject = {
+          id: projectId,
+          name: validatedData.name,
+          description: validatedData.description || "",
+          theme: validatedData.theme,
+          imageCount: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        existing.unshift(newProject);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("pixpro-projects", JSON.stringify(existing));
+          window.dispatchEvent(
+            new CustomEvent("projects:updated", { detail: newProject })
+          );
+        }
+      } catch (err) {
+        console.warn("Could not persist project to localStorage", err);
+      }
 
       toast.success("Projeto criado com sucesso!", {
         description: `${validatedData.name} está pronto para receber imagens.`,

@@ -23,7 +23,7 @@ import {
   Menu,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Project {
   id: string;
@@ -31,11 +31,87 @@ interface Project {
   imageCount: number;
 }
 
+type StoredProject = { id?: string; name?: string; imageCount?: number };
+
 export function Sidebar() {
-  const [projects] = useState<Project[]>([
-    { id: "1", name: "Projeto 1", imageCount: 24 },
-    { id: "2", name: "Projeto 2", imageCount: 12 },
-  ]);
+  const [projects, setProjects] = useState<Project[]>(() => {
+    if (typeof window === "undefined") return [] as Project[];
+    try {
+      const raw = localStorage.getItem("pixpro-projects") || "[]";
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        type StoredProject = {
+          id?: string;
+          name?: string;
+          imageCount?: number;
+        };
+        return parsed.map((p) => {
+          const sp = p as StoredProject;
+          return {
+            id: sp.id || "",
+            name: sp.name || "",
+            imageCount: sp.imageCount ?? 0,
+          } as Project;
+        });
+      }
+    } catch {
+    }
+    return [] as Project[];
+  });
+
+  useEffect(() => {
+    const onCustom = (ev: Event) => {
+      const custom = ev as CustomEvent;
+      const p = custom.detail as StoredProject | null;
+      if (p && p.id) {
+        setProjects((prev) => {
+          if (prev.find((x) => x.id === p.id)) return prev;
+          return [
+            {
+              id: p.id || "",
+              name: p.name || "",
+              imageCount: p.imageCount ?? 0,
+            },
+            ...prev,
+          ];
+        });
+      }
+    };
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "pixpro-projects") {
+        try {
+          const parsed = JSON.parse(e.newValue || "[]") as unknown;
+          if (Array.isArray(parsed)) {
+            type StoredProject = {
+              id?: string;
+              name?: string;
+              imageCount?: number;
+            };
+            setProjects(
+              parsed.map((p) => {
+                const sp = p as StoredProject;
+                return {
+                  id: sp.id || "",
+                  name: sp.name || "",
+                  imageCount: sp.imageCount ?? 0,
+                } as Project;
+              })
+            );
+          }
+        } catch {
+        }
+      }
+    };
+
+    window.addEventListener("projects:updated", onCustom);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener("projects:updated", onCustom);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const user = {
