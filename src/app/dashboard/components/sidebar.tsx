@@ -29,9 +29,10 @@ interface Project {
   id: string;
   name: string;
   imageCount: number;
+  description?: string;
 }
 
-type StoredProject = { id?: string; name?: string; imageCount?: number };
+type StoredProject = { id?: string; name?: string; imageCount?: number; description?: string };
 
 export function Sidebar() {
   const [projects, setProjects] = useState<Project[]>(() => {
@@ -39,11 +40,12 @@ export function Sidebar() {
     try {
       const raw = localStorage.getItem("pixpro-projects") || "[]";
       const parsed = JSON.parse(raw) as unknown;
-      if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed)) {
         type StoredProject = {
           id?: string;
           name?: string;
           imageCount?: number;
+          description?: string;
         };
         return parsed.map((p) => {
           const sp = p as StoredProject;
@@ -51,6 +53,7 @@ export function Sidebar() {
             id: sp.id || "",
             name: sp.name || "",
             imageCount: sp.imageCount ?? 0,
+            description: sp.description || "",
           } as Project;
         });
       }
@@ -71,6 +74,7 @@ export function Sidebar() {
               id: p.id || "",
               name: p.name || "",
               imageCount: p.imageCount ?? 0,
+              description: p.description || "",
             },
             ...prev,
           ];
@@ -83,11 +87,6 @@ export function Sidebar() {
         try {
           const parsed = JSON.parse(e.newValue || "[]") as unknown;
           if (Array.isArray(parsed)) {
-            type StoredProject = {
-              id?: string;
-              name?: string;
-              imageCount?: number;
-            };
             setProjects(
               parsed.map((p) => {
                 const sp = p as StoredProject;
@@ -95,6 +94,7 @@ export function Sidebar() {
                   id: sp.id || "",
                   name: sp.name || "",
                   imageCount: sp.imageCount ?? 0,
+                  description: sp.description || "",
                 } as Project;
               })
             );
@@ -163,6 +163,7 @@ export function Sidebar() {
               <Link
                 key={project.id}
                 href={`/dashboard/project/${project.id}`}
+                title={project.description || undefined}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
                 onClick={() => setMobileOpen(false)}
               >
