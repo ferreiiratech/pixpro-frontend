@@ -6,7 +6,7 @@ export default function DashboardPage() {
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto bg-background">
+      <main className="flex-1 overflow-y-auto bg-background pt-16 md:pt-0">
         <EmptyDashboard />
       </main>
     </div>
