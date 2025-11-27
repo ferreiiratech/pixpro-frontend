@@ -21,6 +21,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useUserProfileStore } from "@/store/user-profile.store";
+import { authService } from "@/services/auth.service";
+import { useRouter } from "next/navigation";
 
 interface Project {
   id: string;
@@ -29,23 +32,15 @@ interface Project {
 }
 
 export function Sidebar() {
+  const user = useUserProfileStore((state) => state.user);
+  const router = useRouter();
+
+  const userInitials = user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() : '??';
+
   const [projects] = useState<Project[]>([
     { id: "1", name: "Projeto 1", imageCount: 24 },
     { id: "2", name: "Projeto 2", imageCount: 12 },
   ]);
-
-  const user = {
-    name: "João Silva",
-    email: "joao@example.com",
-    avatar: "",
-  };
-
-  const userInitials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-card">
@@ -93,13 +88,13 @@ export function Sidebar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-3 px-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user?.avatarUrl} alt={user?.firstName + " " + user?.lastName} />
                 <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-1 flex-col items-start text-left">
-                <span className="text-sm font-medium">{user.name}</span>
+                <span className="text-sm font-medium">{user?.firstName} {user?.lastName}</span>
                 <span className="text-xs text-muted-foreground">
-                  {user.email}
+                  {user?.email}
                 </span>
               </div>
             </Button>
@@ -126,7 +121,7 @@ export function Sidebar() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer text-destructive">
+            <DropdownMenuItem onClick={() => { router.push('/login'); authService.logout(); }} className="cursor-pointer text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sair</span>
             </DropdownMenuItem>
