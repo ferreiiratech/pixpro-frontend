@@ -12,14 +12,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
-import { auth } from "@/lib/auth";
 import { publicEnv } from "@/env";
+import { authService } from "@/services/auth.service";
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,7 +39,20 @@ export function SignupForm({
         throw new Error("A senha deve ter pelo menos 8 caracteres");
       }
 
-      const result = await auth.register(name, email, password);
+      if (!firstName) {
+        throw new Error("O nome é obrigatório");
+      }
+
+      if (!lastName) {
+        throw new Error("O sobrenome é obrigatório");
+      }
+
+      const result = await authService.register({
+        firstName,
+        lastName,
+        email,
+        password,
+      });
 
       if (!result.success) {
         throw new Error(result.message || "Erro ao criar conta");
@@ -46,7 +60,8 @@ export function SignupForm({
 
       toast.success("Conta criada com sucesso!");
 
-      setName("");
+      setFirstName("");
+      setLastName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
@@ -72,17 +87,31 @@ export function SignupForm({
             Preencha o formulário abaixo para criar sua conta
           </p>
         </div>
-        <Field>
-          <FieldLabel htmlFor="name">Nome Completo</FieldLabel>
-          <Input
-            id="name"
-            type="text"
-            placeholder="João Silva"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-4">
+            <Field>
+              <FieldLabel htmlFor="firstName">Nome</FieldLabel>
+              <Input
+                id="firstName"
+                type="text"
+                placeholder="João"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="lastName">Sobrenome</FieldLabel>
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Silva"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
+            </Field>
+        </div>
         <Field>
           <FieldLabel htmlFor="email">E-mail</FieldLabel>
           <Input
