@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
-import { User, useUserProfileStore } from "@/store/user-profile.store";
+import { useUserProfileStore } from "@/store/user-profile.store";
 
 export const userService = {
   async fetchProfile() {

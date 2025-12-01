@@ -25,12 +25,6 @@ import { useUserProfileStore } from "@/store/user-profile.store";
 import { authService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
 
-interface Project {
-  id: string;
-  name: string;
-  imageCount: number;
-}
-
 export function Sidebar() {
   const user = useUserProfileStore((state) => state.user);
   const router = useRouter();

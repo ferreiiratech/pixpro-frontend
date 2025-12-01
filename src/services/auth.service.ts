@@ -3,28 +3,6 @@ import { useAuthStore } from "@/store/auth.store";
 import { useUserProfileStore } from "@/store/user-profile.store";
 import { AxiosError } from "axios";
 
-type LoginCredentials = {
-  email: string;
-  password: string;
-};
-
-type SignupCredentials = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-};
-
-type LoginResponse = {
-  accessToken: string;
-  refreshToken: string;
-};
-
-type SignupResponse = {
-  name: string;
-  email: string;
-};
-
 export const authService = {
   async login(credentials: LoginCredentials) {
     try {

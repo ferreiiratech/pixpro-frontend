@@ -4,12 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 
 const ONBOARDING_STORAGE_KEY = "pixpro-onboarding-completed";
 
-export interface OnboardingState {
-  isActive: boolean;
-  currentStep: number;
-  isCompleted: boolean;
-}
-
 export function useOnboarding(totalSteps: number) {
   const [state, setState] = useState<OnboardingState>({
     isActive: false,

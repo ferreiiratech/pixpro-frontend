@@ -10,19 +10,6 @@ import { Button } from "@/components/ui/button";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
-export interface TourStep {
-  target: string;
-  title: string;
-  description: string;
-  placement?: "top" | "bottom" | "left" | "right";
-}
-
-interface ProductTourProps {
-  steps: TourStep[];
-  onComplete?: () => void;
-  onSkip?: () => void;
-}
-
 export function ProductTour({ steps, onComplete, onSkip }: ProductTourProps) {
   const {
     isActive,

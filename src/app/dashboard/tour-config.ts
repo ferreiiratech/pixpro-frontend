@@ -1,5 +1,3 @@
-import { TourStep } from "@/components/product-tour";
-
 export const dashboardTourSteps: TourStep[] = [
   {
     target: '[data-tour-id="sidebar-logo"]',

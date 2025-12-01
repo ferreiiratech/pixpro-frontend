@@ -1,50 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { axiosInstance } from "@/lib/axios";
 
-export type ImageDto = {
-  id: string;
-  url: string;
-  fileKey: string;
-  contentType: string;
-  projectId: string;
-  createdAt: string;
-};
-
-type RequestUploadUrlDto = {
-  projectId: string;
-  contentType: string;
-};
-
-type UploadUrlDto = {
-  uploadUrl: string;
-  fileKey: string;
-};
-
-type ConfirmUploadDto = {
-  fileKey: string;
-  projectId: string;
-  contentType: string;
-};
-
-type SingleFileDto = {
-  contentType: string;
-};
-
-type BatchRequestUploadUrlDto = {
-  projectId: string;
-  files: SingleFileDto[];
-};
-
-type SingleUploadDto = {
-  fileKey: string;
-  contentType: string;
-};
-
-type BatchConfirmUploadDto = {
-  projectId: string;
-  uploads: SingleUploadDto[];
-};
-
 export const imageService = {
   async uploadImage(file: File, projectId: string) {
     try {
