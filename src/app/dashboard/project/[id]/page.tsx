@@ -5,12 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, ImageIcon, Sparkles } from "lucide-react";
 
-interface ProjectPageProps {
-  params: {
-    id: string;
-  };
-}
-
 export default function ProjectPage({ params }: ProjectPageProps) {
   return (
     <div className="flex h-screen overflow-hidden">

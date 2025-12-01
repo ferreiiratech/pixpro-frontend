@@ -150,3 +150,9 @@ interface CreateProjectData {
   description?: string;
   theme: string;
 }
+
+interface ProjectPageProps {
+  params: {
+    id: string;
+  };
+}
