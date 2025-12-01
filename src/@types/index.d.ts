@@ -127,3 +127,26 @@ interface ProductTourProps {
   onComplete?: () => void;
   onSkip?: () => void;
 }
+
+interface ProjectTheme {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  theme: string;
+  imageCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface CreateProjectData {
+  name: string;
+  description?: string;
+  theme: string;
+}

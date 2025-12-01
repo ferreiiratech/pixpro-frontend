@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CreateProjectDialog } from "@/components/create-project-dialog";
 import { FolderPlus } from "lucide-react";
 
 export function EmptyDashboard() {
@@ -21,14 +22,16 @@ export function EmptyDashboard() {
           imagens com IA.
         </p>
 
-        <Button
-          size="lg"
-          className="w-full"
-          data-tour-id="create-project-button"
-        >
-          <FolderPlus className="mr-2 h-5 w-5" />
-          Criar Projeto
-        </Button>
+        <CreateProjectDialog>
+          <Button
+            size="lg"
+            className="w-full"
+            data-tour-id="create-project-button"
+          >
+            <FolderPlus className="mr-2 h-5 w-5" />
+            Criar Projeto
+          </Button>
+        </CreateProjectDialog>
       </Card>
     </div>
   );
