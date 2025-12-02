@@ -109,7 +109,6 @@ type AuthState = {
   logout: () => void;
 };
 
-
 interface TourStep {
   target: string;
   title: string;
@@ -128,6 +127,12 @@ interface ProjectTheme {
   name: string;
   description: string;
   icon: string;
+  options?: {
+    id: string;
+    name: string;
+    description?: string;
+    value?: string;
+  }[];
 }
 
 interface Project {
@@ -135,6 +140,7 @@ interface Project {
   name: string;
   description?: string;
   theme?: string;
+  themeOption?: string;
   imageCount?: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -144,6 +150,7 @@ interface CreateProjectData {
   name: string;
   description?: string;
   theme: string;
+  themeOption?: string;
 }
 
 interface ProjectPageProps {

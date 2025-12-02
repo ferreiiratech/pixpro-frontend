@@ -47,10 +47,12 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [themeSelectOpen, setThemeSelectOpen] = useState(false);
   const [formData, setFormData] = useState<CreateProjectData>({
     name: "",
     description: "",
     theme: "",
+    themeOption: "",
   });
   const [errors, setErrors] = useState<{
     name?: string;
@@ -63,12 +65,19 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
   const handleThemeChange = (themeId: string) => {
     const theme = PROJECT_THEMES.find((t) => t.id === themeId);
     if (theme) {
+      const defaultOption =
+        theme.options && theme.options.length > 0
+          ? theme.options[0].value ?? theme.options[0].id
+          : "";
+
       setFormData((prev) => ({
         ...prev,
         theme: themeId,
+        themeOption: prev.themeOption || defaultOption,
         name: prev.name || theme.name,
         description: prev.description || theme.description,
       }));
+      setThemeSelectOpen(false);
       setErrors((prev) => ({ ...prev, theme: undefined }));
     }
   };
@@ -107,6 +116,7 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
           name: validatedData.name,
           description: validatedData.description || "",
           theme: validatedData.theme,
+          themeOption: formData.themeOption || undefined,
           imageCount: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -129,7 +139,7 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
 
       setOpen(false);
 
-      setFormData({ name: "", description: "", theme: "" });
+      setFormData({ name: "", description: "", theme: "", themeOption: "" });
       setErrors({});
 
       router.push(`/dashboard/project/${projectId}`);
@@ -189,7 +199,16 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setFormData((p) => ({ ...p, theme: "" }))}
+                      onClick={() => {
+                        setFormData((p) => ({
+                          ...p,
+                          theme: "",
+                          themeOption: "",
+                          name: "",
+                          description: "",
+                        }));
+                        setThemeSelectOpen(true);
+                      }}
                     >
                       Alterar
                     </Button>
@@ -200,6 +219,8 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
                   <Select
                     value={formData.theme}
                     onValueChange={handleThemeChange}
+                    open={themeSelectOpen}
+                    onOpenChange={setThemeSelectOpen}
                   >
                     <SelectTrigger
                       id="theme"
@@ -212,11 +233,30 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
                         <SelectItem key={theme.id} value={theme.id}>
                           <div className="flex items-start gap-2">
                             <span className="text-lg">{theme.icon}</span>
-                            <div>
+                            <div className="flex-1">
                               <div className="font-medium">{theme.name}</div>
                               <div className="text-xs text-muted-foreground">
                                 {theme.description}
                               </div>
+                              {theme.options && theme.options.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                  {theme.options.map((opt) => (
+                                    <div
+                                      key={opt.id}
+                                      className="text-xs text-muted-foreground"
+                                    >
+                                      <span className="font-medium">
+                                        {opt.name}
+                                      </span>
+                                      {opt.description && (
+                                        <span className="ml-2">
+                                          - {opt.description}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </SelectItem>
