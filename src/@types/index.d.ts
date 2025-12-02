@@ -109,11 +109,6 @@ type AuthState = {
   logout: () => void;
 };
 
-interface Project {
-  id: string;
-  name: string;
-  imageCount: number;
-}
 
 interface TourStep {
   target: string;
@@ -139,10 +134,10 @@ interface Project {
   id: string;
   name: string;
   description?: string;
-  theme: string;
-  imageCount: number;
-  createdAt: Date;
-  updatedAt: Date;
+  theme?: string;
+  imageCount?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface CreateProjectData {
@@ -162,4 +157,11 @@ type OnboardingStore = {
   setOnboardingCompleted: (value: boolean) => void;
   markOnboardingCompleted: () => void;
   clearOnboarding: () => void;
+};
+
+type StoredProject = {
+  id?: string;
+  name?: string;
+  imageCount?: number;
+  description?: string;
 };

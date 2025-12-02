@@ -27,15 +27,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 
-interface Project {
-  id: string;
-  name: string;
-  imageCount: number;
-  description?: string;
-}
-
-type StoredProject = { id?: string; name?: string; imageCount?: number; description?: string };
-
 export function Sidebar() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>(() => {
@@ -43,7 +34,7 @@ export function Sidebar() {
     try {
       const raw = localStorage.getItem("pixpro-projects") || "[]";
       const parsed = JSON.parse(raw) as unknown;
-        if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed)) {
         type StoredProject = {
           id?: string;
           name?: string;
@@ -60,8 +51,7 @@ export function Sidebar() {
           } as Project;
         });
       }
-    } catch {
-    }
+    } catch {}
     return [] as Project[];
   });
 
@@ -102,8 +92,7 @@ export function Sidebar() {
               })
             );
           }
-        } catch {
-        }
+        } catch {}
       }
     };
 
@@ -189,11 +178,16 @@ export function Sidebar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-3 px-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.avatar} alt={user?.firstName + " " + user?.lastName} />
+                <AvatarImage
+                  src={user?.avatar}
+                  alt={user?.firstName + " " + user?.lastName}
+                />
                 <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-1 flex-col items-start text-left">
-                <span className="text-sm font-medium">{user?.firstName} {user?.lastName}</span>
+                <span className="text-sm font-medium">
+                  {user?.firstName} {user?.lastName}
+                </span>
                 <span className="text-xs text-muted-foreground">
                   {user?.email}
                 </span>
@@ -234,7 +228,13 @@ export function Sidebar() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => { router.push('/login'); authService.logout(); }} className="cursor-pointer text-destructive">
+            <DropdownMenuItem
+              onClick={() => {
+                router.push("/login");
+                authService.logout();
+              }}
+              className="cursor-pointer text-destructive"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sair</span>
             </DropdownMenuItem>
