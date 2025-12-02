@@ -1,16 +1,69 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "../../components/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, ImageIcon, Sparkles, X } from "lucide-react";
+import { Upload, ImageIcon, Sparkles, X, Plus } from "lucide-react";
 import Image from "next/image";
 import { projectService } from "@/services/project.service";
 import { imageService } from "@/services/image.service";
 import { toast } from "sonner";
 import { publicEnv } from "@/env/index";
+
+const ResponsiveImage = memo(function ResponsiveImage({
+  src,
+  alt,
+}: {
+  src: string;
+  alt?: string;
+}) {
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const img = new window.Image();
+    img.src = src;
+    img.onload = () => {
+      if (!mounted) return;
+      setSize({ w: img.naturalWidth, h: img.naturalHeight });
+    };
+    img.onerror = () => {
+      if (!mounted) return;
+      setSize({ w: 300, h: 200 });
+    };
+    return () => {
+      mounted = false;
+    };
+  }, [src]);
+
+  if (!size) {
+    return (
+      <div className="w-full bg-muted-foreground/5" style={{ minHeight: 96 }} />
+    );
+  }
+
+  const maxDisplayWidth = 250;
+  const displayWidth = Math.min(size.w, maxDisplayWidth);
+  const displayHeight = Math.round((displayWidth * size.h) / size.w);
+
+  return (
+    <div
+      style={{ width: displayWidth, height: displayHeight }}
+      className="relative"
+    >
+      <Image
+        src={src}
+        alt={alt ?? "image"}
+        width={displayWidth}
+        height={displayHeight}
+        unoptimized
+        className="object-contain"
+      />
+    </div>
+  );
+});
 
 interface ProjectPageProps {
   params: {
@@ -129,55 +182,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     }
   };
 
-  function ResponsiveImage({ src, alt }: { src: string; alt?: string }) {
-    const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-
-    useEffect(() => {
-      let mounted = true;
-      const img = new window.Image();
-      img.src = src;
-      img.onload = () => {
-        if (!mounted) return;
-        setSize({ w: img.naturalWidth, h: img.naturalHeight });
-      };
-      img.onerror = () => {
-        if (!mounted) return;
-        setSize({ w: 300, h: 200 });
-      };
-      return () => {
-        mounted = false;
-      };
-    }, [src]);
-
-    if (!size) {
-      return (
-        <div
-          className="w-full bg-muted-foreground/5"
-          style={{ minHeight: 96 }}
-        />
-      );
-    }
-
-    const maxDisplayWidth = 250;
-    const displayWidth = Math.min(size.w, maxDisplayWidth);
-    const displayHeight = Math.round((displayWidth * size.h) / size.w);
-
-    return (
-      <div
-        style={{ width: displayWidth, height: displayHeight }}
-        className="relative"
-      >
-        <Image
-          src={src}
-          alt={alt ?? "image"}
-          width={displayWidth}
-          height={displayHeight}
-          unoptimized
-          className="object-contain"
-        />
-      </div>
-    );
-  }
+  const [actionMode, setActionMode] = useState<
+    "detection" | "upscale" | "filter"
+  >("detection");
+  const [detectionValue, setDetectionValue] = useState<number>(0.5);
+  const [upscaleValue, setUpscaleValue] = useState<number>(2);
+  const [filterValue, setFilterValue] = useState<string>("candy");
 
   if (loading) return <div className="p-6">Carregando projeto...</div>;
 
@@ -276,62 +286,152 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                 </div>
               )}
 
-              <div
-                className={`rounded-md border-2 p-6 text-center transition-colors ${
-                  dragActive
-                    ? "border-dashed border-primary bg-primary/5"
-                    : "bg-transparent"
-                }`}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                onDragLeave={onDragLeave}
-              >
-                <div className="mb-4 flex justify-center">
-                  <div className="rounded-full bg-primary/10 p-4 md:p-6">
-                    <Upload className="h-8 w-8 md:h-12 md:w-12 text-primary" />
-                  </div>
-                </div>
+              {Array.isArray(project.images) && project.images.length > 0 ? (
+                <div className="flex items-center justify-between gap-4 p-4">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-violet-600 text-white shadow"
+                      aria-label="Adicionar imagens"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
 
-                <h2 className="text-xl md:text-2xl font-bold mb-3">
-                  Envie suas primeiras imagens
-                </h2>
-
-                <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm md:text-base">
-                  Arraste e solte suas imagens aqui ou clique no botão abaixo
-                  para selecioná-las do seu computador.
-                </p>
-
-                <input
-                  id={fileInputId}
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="sr-only"
-                  onChange={onFileInputChange}
-                />
-
-                <div className="flex items-center justify-center gap-3">
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="mr-2 h-5 w-5" />
-                    Selecionar Imagens
-                  </Button>
-                  {selectedFiles.length > 0 && (
                     <Button
                       variant="outline"
-                      size="lg"
                       onClick={handleUpload}
-                      disabled={uploading}
+                      disabled={uploading || selectedFiles.length === 0}
                     >
-                      {uploading ? "Enviando..." : "Enviar"}
+                      {uploading ? "Enviando..." : "Enviar imagens"}
                     </Button>
-                  )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={actionMode}
+                      onChange={(e) => setActionMode(e.target.value as any)}
+                      className="rounded-md border px-3 py-2"
+                    >
+                      <option value="detection">Detectar objeto</option>
+                      <option value="upscale">Ampliação</option>
+                      <option value="filter">Filtros</option>
+                    </select>
+
+                    {actionMode === "detection" && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={detectionValue}
+                          onChange={(e) =>
+                            setDetectionValue(Number(e.target.value))
+                          }
+                          className="w-40"
+                        />
+                        <span className="text-sm">
+                          {detectionValue.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {actionMode === "upscale" && (
+                      <select
+                        value={upscaleValue}
+                        onChange={(e) =>
+                          setUpscaleValue(Number(e.target.value))
+                        }
+                        className="rounded-md border px-3 py-2"
+                      >
+                        <option value={2}>2x</option>
+                        <option value={4}>4x</option>
+                      </select>
+                    )}
+
+                    {actionMode === "filter" && (
+                      <select
+                        value={filterValue}
+                        onChange={(e) => setFilterValue(e.target.value)}
+                        className="rounded-md border px-3 py-2"
+                      >
+                        <option value="candy">candy</option>
+                        <option value="mosaic">mosaic</option>
+                        <option value="rain_princess">rain_princess</option>
+                        <option value="udnie">udnie</option>
+                      </select>
+                    )}
+                  </div>
+
+                  <input
+                    id={fileInputId}
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="sr-only"
+                    onChange={onFileInputChange}
+                  />
                 </div>
-              </div>
+              ) : (
+                <div
+                  className={`rounded-md border-2 p-6 text-center transition-colors ${
+                    dragActive
+                      ? "border-dashed border-primary bg-primary/5"
+                      : "bg-transparent"
+                  }`}
+                  onDrop={onDrop}
+                  onDragOver={onDragOver}
+                  onDragLeave={onDragLeave}
+                >
+                  <div className="mb-4 flex justify-center">
+                    <div className="rounded-full bg-primary/10 p-4 md:p-6">
+                      <Upload className="h-8 w-8 md:h-12 md:w-12 text-primary" />
+                    </div>
+                  </div>
+
+                  <h2 className="text-xl md:text-2xl font-bold mb-3">
+                    Envie suas primeiras imagens
+                  </h2>
+
+                  <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm md:text-base">
+                    Arraste e solte suas imagens aqui ou clique no botão abaixo
+                    para selecioná-las do seu computador.
+                  </p>
+
+                  <input
+                    id={fileInputId}
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="sr-only"
+                    onChange={onFileInputChange}
+                  />
+
+                  <div className="flex items-center justify-center gap-3">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="mr-2 h-5 w-5" />
+                      Selecionar Imagens
+                    </Button>
+                    {selectedFiles.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={handleUpload}
+                        disabled={uploading}
+                      >
+                        {uploading ? "Enviando..." : "Enviar"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {previews.length > 0 && (
                 <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
