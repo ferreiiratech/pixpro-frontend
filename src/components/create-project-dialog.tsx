@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { PROJECT_THEMES } from "@/config/project-themes";
+import { projectService } from "@/services/project.service";
 import { z } from "zod";
 
 const createProjectSchema = z.object({
@@ -104,7 +105,23 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
       const validatedData = createProjectSchema.parse(formData);
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      const projectId = `proj_${Date.now()}`;
+      // create project on backend
+      const res = await projectService.createProject({
+        name: validatedData.name,
+        description: validatedData.description || "",
+      });
+
+      if (!res.success || !res.data) {
+        toast.error("Erro ao criar projeto", {
+          description: res.message || "Tente novamente.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const backendProject = res.data;
+      const projectId = backendProject.id;
+
       try {
         const existing =
           typeof window !== "undefined"
@@ -113,11 +130,13 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
 
         const newProject = {
           id: projectId,
-          name: validatedData.name,
-          description: validatedData.description || "",
+          name: backendProject.name,
+          description: backendProject.description || "",
           theme: validatedData.theme,
           themeOption: formData.themeOption || undefined,
-          imageCount: 0,
+          imageCount: Array.isArray(backendProject.images)
+            ? backendProject.images.length
+            : 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };

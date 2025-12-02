@@ -26,37 +26,52 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
+import { projectService } from "@/services/project.service";
 import { useUserProfileStore } from "@/store/user-profile.store";
 
 export function Sidebar() {
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>(() => {
-    if (typeof window === "undefined") return [] as Project[];
-    try {
-      const raw = localStorage.getItem("pixpro-projects") || "[]";
-      const parsed = JSON.parse(raw) as unknown;
-      if (Array.isArray(parsed)) {
-        type StoredProject = {
-          id?: string;
-          name?: string;
-          imageCount?: number;
-          description?: string;
-        };
-        return parsed.map((p) => {
-          const sp = p as StoredProject;
-          return {
-            id: sp.id || "",
-            name: sp.name || "",
-            imageCount: sp.imageCount ?? 0,
-            description: sp.description || "",
-          } as Project;
-        });
-      }
-    } catch {}
-    return [] as Project[];
-  });
+  const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      const res = await projectService.getProjects();
+      if (!mounted) return;
+      if (res.success && Array.isArray(res.data)) {
+        const mapped = res.data.map(
+          (p) =>
+            ({
+              id: p.id,
+              name: p.name,
+              description: p.description || "",
+              imageCount: Array.isArray(p.images) ? p.images.length : 0,
+            } as Project)
+        );
+
+        setProjects(mapped);
+        try {
+          localStorage.setItem("pixpro-projects", JSON.stringify(mapped));
+        } catch {}
+      } else {
+        try {
+          const raw = localStorage.getItem("pixpro-projects") || "[]";
+          const parsed = JSON.parse(raw) as unknown;
+          if (Array.isArray(parsed)) {
+            setProjects(
+              parsed.map((sp: any) => ({
+                id: sp.id || "",
+                name: sp.name || "",
+                imageCount: sp.imageCount ?? 0,
+                description: sp.description || "",
+              }))
+            );
+          }
+        } catch {}
+      }
+    })();
+
     const onCustom = (ev: Event) => {
       const custom = ev as CustomEvent;
       const p = custom.detail as StoredProject | null;
@@ -101,6 +116,7 @@ export function Sidebar() {
     window.addEventListener("storage", onStorage);
 
     return () => {
+      mounted = false;
       window.removeEventListener("projects:updated", onCustom);
       window.removeEventListener("storage", onStorage);
     };
@@ -184,7 +200,11 @@ export function Sidebar() {
                   {user?.firstName} {user?.lastName}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {user?.email ? (user.email.length > 25 ? user.email.slice(0, 25) + "..." : user.email) : ""}
+                  {user?.email
+                    ? user.email.length > 25
+                      ? user.email.slice(0, 25) + "..."
+                      : user.email
+                    : ""}
                 </span>
               </div>
             </Button>
