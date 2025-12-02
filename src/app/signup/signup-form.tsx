@@ -58,7 +58,11 @@ export function SignupForm({
         throw new Error(result.message || "Erro ao criar conta");
       }
 
-      toast.success("Conta criada com sucesso!");
+      toast.success("Conta criada com sucesso! Agora, faça login.");
+
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
 
       setFirstName("");
       setLastName("");
@@ -88,29 +92,29 @@ export function SignupForm({
           </p>
         </div>
         <div className="grid grid-cols-2 gap-4">
-            <Field>
-              <FieldLabel htmlFor="firstName">Nome</FieldLabel>
-              <Input
-                id="firstName"
-                type="text"
-                placeholder="João"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-              />
-            </Field>
+          <Field>
+            <FieldLabel htmlFor="firstName">Nome</FieldLabel>
+            <Input
+              id="firstName"
+              type="text"
+              placeholder="João"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+          </Field>
 
-            <Field>
-              <FieldLabel htmlFor="lastName">Sobrenome</FieldLabel>
-              <Input
-                id="lastName"
-                type="text"
-                placeholder="Silva"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-              />
-            </Field>
+          <Field>
+            <FieldLabel htmlFor="lastName">Sobrenome</FieldLabel>
+            <Input
+              id="lastName"
+              type="text"
+              placeholder="Silva"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+          </Field>
         </div>
         <Field>
           <FieldLabel htmlFor="email">E-mail</FieldLabel>
