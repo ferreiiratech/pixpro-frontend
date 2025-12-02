@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "../../components/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, ImageIcon, Sparkles } from "lucide-react";
+import { Upload, ImageIcon, Sparkles, X } from "lucide-react";
 import { projectService } from "@/services/project.service";
+import { imageService } from "@/services/image.service";
+import { toast } from "sonner";
 
 interface ProjectPageProps {
   params: {
@@ -19,6 +21,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const { id } = params || { id: undefined };
   const [project, setProject] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -40,6 +46,86 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       mounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    const urls = selectedFiles.map((f) => URL.createObjectURL(f));
+    setPreviews(urls);
+
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [selectedFiles]);
+
+  const fileInputId = `project-file-input-${Math.random()
+    .toString(36)
+    .slice(2, 9)}`;
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFilesSelected = (files: FileList | null) => {
+    if (!files) return;
+    const imgs = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (imgs.length === 0) return;
+    setSelectedFiles((prev) => [...prev, ...imgs]);
+  };
+
+  const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFilesSelected(e.target.files);
+    e.currentTarget.value = "";
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    handleFilesSelected(e.dataTransfer.files);
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const removePreview = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpload = async () => {
+    if (!project || selectedFiles.length === 0) return;
+    setUploading(true);
+    try {
+      let res;
+
+      if (selectedFiles.length === 1) {
+        res = await imageService.uploadImage(selectedFiles[0], project.id);
+      } else {
+        res = await imageService.uploadBatch(selectedFiles, project.id);
+      }
+
+      if (!res || !res.success) {
+        toast.error(res?.message || "Erro ao enviar imagens");
+        return;
+      }
+
+      toast.success("Upload concluído");
+
+      const fres = await projectService.getProjectById(project.id);
+      if (fres.success && fres.data) setProject(fres.data);
+
+      setSelectedFiles([]);
+    } catch (err) {
+      toast.error("Erro ao enviar imagens");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (loading) return <div className="p-6">Carregando projeto...</div>;
 
@@ -111,26 +197,88 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           </div>
 
           <Card className="p-6 md:p-12">
-            <div className="text-center">
-              <div className="mb-6 flex justify-center">
-                <div className="rounded-full bg-primary/10 p-4 md:p-6">
-                  <Upload className="h-8 w-8 md:h-12 md:w-12 text-primary" />
+            <div>
+              <div
+                className={`rounded-md border-2 p-6 text-center transition-colors ${
+                  dragActive
+                    ? "border-dashed border-primary bg-primary/5"
+                    : "bg-transparent"
+                }`}
+                onDrop={onDrop}
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+              >
+                <div className="mb-4 flex justify-center">
+                  <div className="rounded-full bg-primary/10 p-4 md:p-6">
+                    <Upload className="h-8 w-8 md:h-12 md:w-12 text-primary" />
+                  </div>
+                </div>
+
+                <h2 className="text-xl md:text-2xl font-bold mb-3">
+                  Envie suas primeiras imagens
+                </h2>
+
+                <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm md:text-base">
+                  Arraste e solte suas imagens aqui ou clique no botão abaixo
+                  para selecioná-las do seu computador.
+                </p>
+
+                <input
+                  id={fileInputId}
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  onChange={onFileInputChange}
+                />
+
+                <div className="flex items-center justify-center gap-3">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="mr-2 h-5 w-5" />
+                    Selecionar Imagens
+                  </Button>
+                  {selectedFiles.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={handleUpload}
+                      disabled={uploading}
+                    >
+                      {uploading ? "Enviando..." : "Enviar"}
+                    </Button>
+                  )}
                 </div>
               </div>
 
-              <h2 className="text-xl md:text-2xl font-bold mb-3">
-                Envie suas primeiras imagens
-              </h2>
-
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto text-sm md:text-base">
-                Arraste e solte suas imagens aqui ou clique no botão abaixo para
-                começar a aplicar modelos de IA.
-              </p>
-
-              <Button size="lg" className="w-full sm:w-auto">
-                <Upload className="mr-2 h-5 w-5" />
-                Selecionar Imagens
-              </Button>
+              {previews.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {previews.map((src, idx) => (
+                    <div
+                      key={src}
+                      className="relative rounded-md overflow-hidden border"
+                    >
+                      <img
+                        src={src}
+                        alt={`preview-${idx}`}
+                        className="w-full h-32 object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePreview(idx)}
+                        className="absolute top-1 right-1 inline-flex items-center justify-center rounded-full bg-white/80 p-1"
+                        aria-label="Remover imagem"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </Card>
         </div>

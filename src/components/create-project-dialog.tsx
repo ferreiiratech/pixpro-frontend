@@ -105,7 +105,6 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
       const validatedData = createProjectSchema.parse(formData);
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // create project on backend
       const res = await projectService.createProject({
         name: validatedData.name,
         description: validatedData.description || "",
