@@ -438,13 +438,13 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                   {previews.map((src, idx) => (
                     <div
                       key={src}
-                      className="rounded-md overflow-hidden border p-1 flex items-center justify-center"
+                      className="relative rounded-md overflow-hidden border p-1 flex items-center justify-center"
                     >
                       <ResponsiveImage src={src} alt={`preview-${idx}`} />
                       <button
                         type="button"
                         onClick={() => removePreview(idx)}
-                        className="absolute top-1 right-1 inline-flex items-center justify-center rounded-full bg-white/80 p-1"
+                        className="absolute top-1 right-1 inline-flex items-center justify-center rounded-full bg-gray-500 p-1"
                         aria-label="Remover imagem"
                       >
                         <X className="h-4 w-4" />
