@@ -103,7 +103,6 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
 
     try {
       const validatedData = createProjectSchema.parse(formData);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const res = await projectService.createProject({
         name: validatedData.name,
