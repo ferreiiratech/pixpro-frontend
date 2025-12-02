@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "../../components/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, ImageIcon, Sparkles, X, Plus } from "lucide-react";
+import { Upload, ImageIcon, Sparkles, X, Plus, Check } from "lucide-react";
 import Image from "next/image";
 import { projectService } from "@/services/project.service";
 import { imageService } from "@/services/image.service";
@@ -44,7 +44,7 @@ const ResponsiveImage = memo(function ResponsiveImage({
     );
   }
 
-  const maxDisplayWidth = 250;
+  const maxDisplayWidth = 120;
   const displayWidth = Math.min(size.w, maxDisplayWidth);
   const displayHeight = Math.round((displayWidth * size.h) / size.w);
 
@@ -74,7 +74,7 @@ interface ProjectPageProps {
 export default function ProjectPage({ params }: ProjectPageProps) {
   const router = useRouter();
   const { id } = params || { id: undefined };
-  const [project, setProject] = useState<any | null>(null);
+  const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -159,10 +159,14 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       let res;
 
       if (selectedFiles.length === 1) {
+        console.log("Uploading files:", selectedFiles);
         res = await imageService.uploadImage(selectedFiles[0], project.id);
+        console.log("Uploading files:", selectedFiles);
       } else {
         res = await imageService.uploadBatch(selectedFiles, project.id);
       }
+
+      console.log("Upload response:", res);
 
       if (!res || !res.success) {
         toast.error(res?.message || "Erro ao enviar imagens");
@@ -179,6 +183,66 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       toast.error("Erro ao enviar imagens");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const [processing, setProcessing] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState<string[]>([]);
+
+  const handleProcess = async () => {
+    if (!project) return;
+
+    if (selectedFiles.length > 0) {
+      toast.error("Envie as imagens antes de processá-las.");
+      return;
+    }
+
+    const imageIds: string[] = selectedImageIds.length
+      ? selectedImageIds
+      : Array.isArray(project.images)
+      ? project.images.map((img: ProjectImage) => img.id)
+      : [];
+
+    if (imageIds.length === 0) {
+      toast.error("Nenhuma imagem disponível para processar.");
+      return;
+    }
+
+    setProcessing(true);
+
+    try {
+      let params: any = {};
+      if (actionMode === "detection") {
+        params = { confidence: detectionValue };
+      } else if (actionMode === "upscale") {
+        params = { scale: upscaleValue };
+      } else if (actionMode === "filter") {
+        params = { filter_id: filterValue };
+      }
+
+      const res = await imageService.processImagens(
+        project.id,
+        imageIds,
+        actionMode,
+        params
+      );
+
+      if (!res || !res.success) {
+        toast.error(res?.message || "Erro ao solicitar processamento.");
+        return;
+      }
+
+      toast.success("Pedido de processamento enviado com sucesso.");
+
+      const fres = await projectService.getProjectById(project.id);
+      if (fres.success && fres.data) {
+        setProject(fres.data);
+        setSelectedImageIds([]);
+      }
+    } catch (err) {
+      toast.error("Erro ao processar imagens.");
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -202,6 +266,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </div>
     );
+
+  const allResultImageUrls: string[] = Array.isArray(project.jobs)
+    ? project.jobs.flatMap((job) =>
+        Array.isArray(job.resultImageUrls) ? job.resultImageUrls : []
+      )
+    : [];
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -260,31 +330,84 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
           <Card className="p-6 md:p-12">
             <div>
-              {Array.isArray(project.images) && project.images.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="mb-3 text-lg font-semibold">
-                    Imagens do projeto
-                  </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {project.images.map((img: any, idx: number) => {
-                      const fileKey =
-                        img?.fileKey ?? img?.file_key ?? img?.key ?? img;
-                      const src = `${publicEnv.NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_DOMAIN}/${fileKey}`;
-                      return (
-                        <div
-                          key={fileKey ?? idx}
-                          className="rounded-md overflow-hidden border p-1 flex items-center justify-center"
-                        >
-                          <ResponsiveImage
-                            src={src}
-                            alt={`project-img-${idx}`}
-                          />
-                        </div>
-                      );
-                    })}
+              {(Array.isArray(project.images) && project.images.length > 0) ||
+              (Array.isArray(allResultImageUrls) &&
+                allResultImageUrls.length > 0) ? (
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="mb-3 text-lg font-semibold">
+                      Imagens do projeto
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {project.images.map((img: ProjectImage, idx: number) => {
+                        const fileKey = img?.fileKey;
+                        const imageId = img?.id;
+                        const src = `${publicEnv.NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_DOMAIN}/${fileKey}`;
+                        const isSelected = selectedImageIds.includes(imageId);
+                        const toggleSelect = () => {
+                          setSelectedImageIds((prev) =>
+                            prev.includes(imageId)
+                              ? prev.filter((k) => k !== imageId)
+                              : [...prev, imageId]
+                          );
+                        };
+
+                        return (
+                          <div
+                            key={imageId ?? idx}
+                            role="button"
+                            tabIndex={0}
+                            onClick={toggleSelect}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ")
+                                toggleSelect();
+                            }}
+                            className={`relative rounded-md overflow-hidden p-1 flex items-center justify-center cursor-pointer focus:outline-none`}
+                          >
+                            <ResponsiveImage
+                              src={src}
+                              alt={`project-img-${idx}`}
+                            />
+
+                            <div className="absolute inset-0 transition-colors pointer-events-none">
+                              <div className="absolute inset-0 bg-black/0 hover:bg-black transition-colors rounded-md" />
+                            </div>
+
+                            {isSelected && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-black/30 rounded-md" />
+                                <div className="relative z-10 rounded-full bg-white/20 p-3">
+                                  <Check className="h-10 w-10 text-white" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="mb-3 text-lg font-semibold">Resultados</h3>
+                    {allResultImageUrls.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum resultado disponível
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {allResultImageUrls.map((url, i) => (
+                          <div
+                            key={`result-${i}`}
+                            className="rounded-md overflow-hidden p-1 flex items-center justify-center"
+                          >
+                            <ResponsiveImage src={url} alt={`result-${i}`} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {Array.isArray(project.images) && project.images.length > 0 ? (
                 <div className="flex items-center justify-between gap-4 p-4">
@@ -373,6 +496,14 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                     className="sr-only"
                     onChange={onFileInputChange}
                   />
+
+                  <Button
+                    variant="outline"
+                    onClick={handleProcess}
+                    disabled={processing || selectedImageIds.length === 0}
+                  >
+                    {processing ? "Processando..." : "Processar imagens"}
+                  </Button>
                 </div>
               ) : (
                 <div

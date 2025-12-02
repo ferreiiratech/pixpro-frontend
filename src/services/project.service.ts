@@ -57,13 +57,9 @@ export const projectService = {
 
   async getProjectById(id: string) {
     try {
-      const response = await axiosInstance.get<{
-        id: string;
-        name: string;
-        description: string;
-        images: unknown[];
-        userId: string;
-      }>(`/projects/${id}`);
+      const response = await axiosInstance.get<ProjectDetail>(
+        `/projects/${id}`
+      );
 
       return { success: true, data: response.data, message: null };
     } catch (error) {

@@ -172,3 +172,35 @@ type StoredProject = {
   imageCount?: number;
   description?: string;
 };
+
+type ProjectImage = {
+  id: string;
+  fileKey: string;
+  status: string;
+  contentType: string;
+  projectId: string;
+  userId: string;
+};
+
+type Job = {
+  id: string;
+  status: string;
+  modelType: string | null;
+  parameters: Record<string, any>;
+  targetImageIds: string[];
+  resultImageUrls: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ProjectDetail = {
+  id: string;
+  name: string;
+  description?: string;
+  userId: string;
+  images: ProjectImage[];
+  jobs: Job[];
+  numberOfImages: number;
+  numberOfProcessedImages: number;
+  numberOfPendingImages: number;
+};
