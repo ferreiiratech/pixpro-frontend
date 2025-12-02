@@ -26,6 +26,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
+import { useUserProfileStore } from "@/store/user-profile.store";
 
 export function Sidebar() {
   const router = useRouter();
@@ -105,15 +106,9 @@ export function Sidebar() {
     };
   }, []);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const user = useUserProfileStore((state) => state.user);
 
-  const user = {
-    firstName: "João",
-    lastName: "Silva",
-    email: "joao@example.com",
-    avatar: "",
-  };
-
-  const userInitials = (user.firstName + " " + user.lastName)
+  const userInitials = (user?.firstName + " " + user?.lastName)
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -179,7 +174,7 @@ export function Sidebar() {
             <Button variant="ghost" className="w-full justify-start gap-3 px-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src={user?.avatar}
+                  src={user?.avatarUrl}
                   alt={user?.firstName + " " + user?.lastName}
                 />
                 <AvatarFallback>{userInitials}</AvatarFallback>
@@ -189,7 +184,7 @@ export function Sidebar() {
                   {user?.firstName} {user?.lastName}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {user?.email}
+                  {user?.email ? (user.email.length > 25 ? user.email.slice(0, 25) + "..." : user.email) : ""}
                 </span>
               </div>
             </Button>
@@ -230,8 +225,8 @@ export function Sidebar() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                router.push("/login");
                 authService.logout();
+                router.push("/");
               }}
               className="cursor-pointer text-destructive"
             >
