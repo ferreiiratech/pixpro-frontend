@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "prod.spline.design",
       },
+      {
+        protocol: "https",
+        hostname: "pub-d5d9f827413b4e5ea3e3e2fc960ce6bb.r2.dev",
+      },
     ],
   },
 };

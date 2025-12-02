@@ -6,9 +6,11 @@ import { Sidebar } from "../../components/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, ImageIcon, Sparkles, X } from "lucide-react";
+import Image from "next/image";
 import { projectService } from "@/services/project.service";
 import { imageService } from "@/services/image.service";
 import { toast } from "sonner";
+import { publicEnv } from "@/env/index";
 
 interface ProjectPageProps {
   params: {
@@ -127,6 +129,56 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     }
   };
 
+  function ResponsiveImage({ src, alt }: { src: string; alt?: string }) {
+    const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+
+    useEffect(() => {
+      let mounted = true;
+      const img = new window.Image();
+      img.src = src;
+      img.onload = () => {
+        if (!mounted) return;
+        setSize({ w: img.naturalWidth, h: img.naturalHeight });
+      };
+      img.onerror = () => {
+        if (!mounted) return;
+        setSize({ w: 300, h: 200 });
+      };
+      return () => {
+        mounted = false;
+      };
+    }, [src]);
+
+    if (!size) {
+      return (
+        <div
+          className="w-full bg-muted-foreground/5"
+          style={{ minHeight: 96 }}
+        />
+      );
+    }
+
+    const maxDisplayWidth = 250;
+    const displayWidth = Math.min(size.w, maxDisplayWidth);
+    const displayHeight = Math.round((displayWidth * size.h) / size.w);
+
+    return (
+      <div
+        style={{ width: displayWidth, height: displayHeight }}
+        className="relative"
+      >
+        <Image
+          src={src}
+          alt={alt ?? "image"}
+          width={displayWidth}
+          height={displayHeight}
+          unoptimized
+          className="object-contain"
+        />
+      </div>
+    );
+  }
+
   if (loading) return <div className="p-6">Carregando projeto...</div>;
 
   if (!project)
@@ -198,6 +250,32 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
           <Card className="p-6 md:p-12">
             <div>
+              {Array.isArray(project.images) && project.images.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="mb-3 text-lg font-semibold">
+                    Imagens do projeto
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {project.images.map((img: any, idx: number) => {
+                      const fileKey =
+                        img?.fileKey ?? img?.file_key ?? img?.key ?? img;
+                      const src = `${publicEnv.NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_DOMAIN}/${fileKey}`;
+                      return (
+                        <div
+                          key={fileKey ?? idx}
+                          className="rounded-md overflow-hidden border p-1 flex items-center justify-center"
+                        >
+                          <ResponsiveImage
+                            src={src}
+                            alt={`project-img-${idx}`}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div
                 className={`rounded-md border-2 p-6 text-center transition-colors ${
                   dragActive
@@ -260,13 +338,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                   {previews.map((src, idx) => (
                     <div
                       key={src}
-                      className="relative rounded-md overflow-hidden border"
+                      className="rounded-md overflow-hidden border p-1 flex items-center justify-center"
                     >
-                      <img
-                        src={src}
-                        alt={`preview-${idx}`}
-                        className="w-full h-32 object-cover"
-                      />
+                      <ResponsiveImage src={src} alt={`preview-${idx}`} />
                       <button
                         type="button"
                         onClick={() => removePreview(idx)}
