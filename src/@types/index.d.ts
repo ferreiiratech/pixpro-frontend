@@ -156,3 +156,10 @@ interface ProjectPageProps {
     id: string;
   };
 }
+
+type OnboardingStore = {
+  hasCompletedOnboarding: boolean;
+  setOnboardingCompleted: (value: boolean) => void;
+  markOnboardingCompleted: () => void;
+  clearOnboarding: () => void;
+};

@@ -32,7 +32,7 @@ export function LoginForm({
 
     try {
       const result = await authService.login({ email, password });
-      console.log(result);
+      console.error("Login result:", result);
       if (!result.success) {
         throw new Error(result.message || "Erro ao autenticar");
       }

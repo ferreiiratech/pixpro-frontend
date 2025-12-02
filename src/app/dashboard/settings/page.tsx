@@ -4,10 +4,11 @@ import { Sidebar } from "../components/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlayCircle } from "lucide-react";
+import { useOnboardingStore } from "@/store/onboarding.store";
 
 export default function SettingsPage() {
   const handleRestartTour = () => {
-    localStorage.removeItem("pixpro-onboarding-completed");
+    useOnboardingStore.getState().clearOnboarding();
     window.location.href = "/dashboard";
   };
 

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-
-const ONBOARDING_STORAGE_KEY = "pixpro-onboarding-completed";
+import { useOnboardingStore } from "@/store/onboarding.store";
 
 export function useOnboarding(totalSteps: number) {
   const [state, setState] = useState<OnboardingState>({
@@ -11,10 +10,10 @@ export function useOnboarding(totalSteps: number) {
     isCompleted: false,
   });
 
-  useEffect(() => {
-    const completed = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+  const hasCompleted = useOnboardingStore((s) => s.hasCompletedOnboarding);
 
-    if (!completed) {
+  useEffect(() => {
+    if (!hasCompleted) {
       setState({
         isActive: true,
         currentStep: 0,
@@ -27,7 +26,7 @@ export function useOnboarding(totalSteps: number) {
         isCompleted: true,
       });
     }
-  }, []);
+  }, [hasCompleted]);
 
   const nextStep = useCallback(() => {
     setState((prev) => {
@@ -54,7 +53,7 @@ export function useOnboarding(totalSteps: number) {
   }, []);
 
   const skipTour = useCallback(() => {
-    localStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
+    useOnboardingStore.getState().markOnboardingCompleted();
     setState({
       isActive: false,
       currentStep: 0,
@@ -63,7 +62,7 @@ export function useOnboarding(totalSteps: number) {
   }, []);
 
   const completeTour = useCallback(() => {
-    localStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
+    useOnboardingStore.getState().markOnboardingCompleted();
     setState({
       isActive: false,
       currentStep: 0,
@@ -80,7 +79,7 @@ export function useOnboarding(totalSteps: number) {
   }, []);
 
   const resetOnboarding = useCallback(() => {
-    localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+    useOnboardingStore.getState().clearOnboarding();
     setState({
       isActive: true,
       currentStep: 0,
