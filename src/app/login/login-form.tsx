@@ -12,8 +12,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
-import { auth } from "@/lib/auth";
 import { publicEnv } from "@/env";
+import { authService } from "@/services/auth.service";
+import { userService } from "@/services/user.service";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
@@ -22,19 +24,24 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
 
     try {
-      const result = await auth.login(email, password);
-
+      const result = await authService.login({ email, password });
+      console.error("Login result:", result);
       if (!result.success) {
         throw new Error(result.message || "Erro ao autenticar");
       }
 
+      await userService.fetchProfile();
+      
       toast.success("Login realizado com sucesso!");
+
+      router.push("/dashboard");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Erro inesperado";

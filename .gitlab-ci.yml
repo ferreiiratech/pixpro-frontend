@@ -1,5 +1,6 @@
 stages:
   - build
+  - docker
   - deploy
 
 build_app:
@@ -17,6 +18,26 @@ build_app:
     - develop
     - main
 
+docker_build_push:
+  stage: docker
+  image: docker:27
+  services:
+    - name: docker:27-dind
+      command: ["--tls=false"]
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    IMAGE_SHA: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    IMAGE_LATEST: $CI_REGISTRY_IMAGE:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main"'
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker build --build-arg NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL -t "$IMAGE_SHA" -t "$IMAGE_LATEST" .
+    - docker push "$IMAGE_SHA"
+    - docker push "$IMAGE_LATEST"
+  needs:
+    - build_app
+
 deploy_vercel:
   stage: deploy
   image: node:20
@@ -30,3 +51,5 @@ deploy_vercel:
   only:
     - develop
     - main
+  needs:
+    - docker_build_push
