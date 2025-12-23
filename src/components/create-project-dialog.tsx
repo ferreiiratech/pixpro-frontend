@@ -85,7 +85,13 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
 
   const validateField = (field: keyof CreateProjectData, value: string) => {
     try {
-      const fieldSchema = createProjectSchema.shape[field];
+      // Only validate fields that exist in the schema
+      if (field === "themeOption") return;
+
+      const fieldSchema =
+        createProjectSchema.shape[
+          field as keyof typeof createProjectSchema.shape
+        ];
       if (fieldSchema) {
         fieldSchema.parse(value);
         setErrors((prev) => ({ ...prev, [field]: undefined }));

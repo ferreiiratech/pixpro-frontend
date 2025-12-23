@@ -186,7 +186,7 @@ type Job = {
   id: string;
   status: string;
   modelType: string | null;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   targetImageIds: string[];
   resultImageUrls: string[];
   createdAt: string;

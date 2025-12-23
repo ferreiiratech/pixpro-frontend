@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, ImageIcon, Sparkles, X, Plus, Check } from "lucide-react";
 import Image from "next/image";
 import { projectService } from "@/services/project.service";
-import { imageService } from "@/services/image.service";
+import { imageService, type ProcessParams } from "@/services/image.service";
 import { toast } from "sonner";
 import { publicEnv } from "@/env/index";
 
@@ -179,7 +179,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       if (fres.success && fres.data) setProject(fres.data);
 
       setSelectedFiles([]);
-    } catch (err) {
+    } catch {
       toast.error("Erro ao enviar imagens");
     } finally {
       setUploading(false);
@@ -211,13 +211,19 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     setProcessing(true);
 
     try {
-      let params: any = {};
+      let params: ProcessParams;
       if (actionMode === "detection") {
         params = { confidence: detectionValue };
       } else if (actionMode === "upscale") {
-        params = { scale: upscaleValue };
-      } else if (actionMode === "filter") {
-        params = { filter_id: filterValue };
+        params = { scale: upscaleValue as 2 | 4 };
+      } else {
+        params = {
+          filter_id: filterValue as
+            | "candy"
+            | "mosaic"
+            | "rain_princess"
+            | "udnie",
+        };
       }
 
       const res = await imageService.processImagens(
@@ -239,7 +245,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         setProject(fres.data);
         setSelectedImageIds([]);
       }
-    } catch (err) {
+    } catch {
       toast.error("Erro ao processar imagens.");
     } finally {
       setProcessing(false);
@@ -433,7 +439,11 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                   <div className="flex items-center gap-3">
                     <select
                       value={actionMode}
-                      onChange={(e) => setActionMode(e.target.value as any)}
+                      onChange={(e) =>
+                        setActionMode(
+                          e.target.value as "detection" | "upscale" | "filter"
+                        )
+                      }
                       className="rounded-md border px-3 py-2"
                     >
                       <option value="detection">Detectar objeto</option>

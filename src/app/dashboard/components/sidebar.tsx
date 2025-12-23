@@ -60,12 +60,15 @@ export function Sidebar() {
           const parsed = JSON.parse(raw) as unknown;
           if (Array.isArray(parsed)) {
             setProjects(
-              parsed.map((sp: any) => ({
-                id: sp.id || "",
-                name: sp.name || "",
-                imageCount: sp.imageCount ?? 0,
-                description: sp.description || "",
-              }))
+              parsed.map((sp: unknown) => {
+                const project = sp as Partial<Project>;
+                return {
+                  id: project.id || "",
+                  name: project.name || "",
+                  imageCount: project.imageCount ?? 0,
+                  description: project.description || "",
+                };
+              })
             );
           }
         } catch {}
