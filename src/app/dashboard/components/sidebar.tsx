@@ -24,45 +24,54 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-
-interface Project {
-  id: string;
-  name: string;
-  imageCount: number;
-  description?: string;
-}
-
-type StoredProject = { id?: string; name?: string; imageCount?: number; description?: string };
+import { useRouter } from "next/navigation";
+import { authService } from "@/services/auth.service";
+import { projectService } from "@/services/project.service";
+import { useUserProfileStore } from "@/store/user-profile.store";
 
 export function Sidebar() {
-  const [projects, setProjects] = useState<Project[]>(() => {
-    if (typeof window === "undefined") return [] as Project[];
-    try {
-      const raw = localStorage.getItem("pixpro-projects") || "[]";
-      const parsed = JSON.parse(raw) as unknown;
-        if (Array.isArray(parsed)) {
-        type StoredProject = {
-          id?: string;
-          name?: string;
-          imageCount?: number;
-          description?: string;
-        };
-        return parsed.map((p) => {
-          const sp = p as StoredProject;
-          return {
-            id: sp.id || "",
-            name: sp.name || "",
-            imageCount: sp.imageCount ?? 0,
-            description: sp.description || "",
-          } as Project;
-        });
-      }
-    } catch {
-    }
-    return [] as Project[];
-  });
+  const router = useRouter();
+  const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      const res = await projectService.getProjects();
+      if (!mounted) return;
+      if (res.success && Array.isArray(res.data)) {
+        const mapped = res.data.map(
+          (p) =>
+            ({
+              id: p.id,
+              name: p.name,
+              description: p.description || "",
+              imageCount: Array.isArray(p.images) ? p.images.length : 0,
+            } as Project)
+        );
+
+        setProjects(mapped);
+        try {
+          localStorage.setItem("pixpro-projects", JSON.stringify(mapped));
+        } catch {}
+      } else {
+        try {
+          const raw = localStorage.getItem("pixpro-projects") || "[]";
+          const parsed = JSON.parse(raw) as unknown;
+          if (Array.isArray(parsed)) {
+            setProjects(
+              parsed.map((sp: any) => ({
+                id: sp.id || "",
+                name: sp.name || "",
+                imageCount: sp.imageCount ?? 0,
+                description: sp.description || "",
+              }))
+            );
+          }
+        } catch {}
+      }
+    })();
+
     const onCustom = (ev: Event) => {
       const custom = ev as CustomEvent;
       const p = custom.detail as StoredProject | null;
@@ -99,8 +108,7 @@ export function Sidebar() {
               })
             );
           }
-        } catch {
-        }
+        } catch {}
       }
     };
 
@@ -108,19 +116,15 @@ export function Sidebar() {
     window.addEventListener("storage", onStorage);
 
     return () => {
+      mounted = false;
       window.removeEventListener("projects:updated", onCustom);
       window.removeEventListener("storage", onStorage);
     };
   }, []);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const user = useUserProfileStore((state) => state.user);
 
-  const user = {
-    name: "João Silva",
-    email: "joao@example.com",
-    avatar: "",
-  };
-
-  const userInitials = user.name
+  const userInitials = (user?.firstName + " " + user?.lastName)
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -185,13 +189,22 @@ export function Sidebar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-3 px-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage
+                  src={user?.avatarUrl}
+                  alt={user?.firstName + " " + user?.lastName}
+                />
                 <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-1 flex-col items-start text-left">
-                <span className="text-sm font-medium">{user.name}</span>
+                <span className="text-sm font-medium">
+                  {user?.firstName} {user?.lastName}
+                </span>
                 <span className="text-xs text-muted-foreground">
-                  {user.email}
+                  {user?.email
+                    ? user.email.length > 25
+                      ? user.email.slice(0, 25) + "..."
+                      : user.email
+                    : ""}
                 </span>
               </div>
             </Button>
@@ -230,7 +243,13 @@ export function Sidebar() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer text-destructive">
+            <DropdownMenuItem
+              onClick={() => {
+                authService.logout();
+                router.push("/");
+              }}
+              className="cursor-pointer text-destructive"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sair</span>
             </DropdownMenuItem>
